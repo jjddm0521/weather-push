@@ -3,22 +3,38 @@ name: Weather Push
 on:
   workflow_dispatch:
 
+  schedule:
+    # 每天北京时间 07:30 推送
+    # GitHub 使用 UTC 时间
+    # 北京时间 07:30 = UTC 23:50（前一天）
+    - cron: "50 23 * * *"
+
 jobs:
-  test:
+  weather-push:
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Run Script
-        run: node weather.js
+      - name: Run Weather Script
         env:
           WX_APPID: ${{ secrets.WX_APPID }}
           WX_SECRET: ${{ secrets.WX_SECRET }}
-          WX_OPENID: ${{ secrets.WX_OPENID }}
+
+          WX_OPENID_1: ${{ secrets.WX_OPENID_1 }}
+          WX_OPENID_2: ${{ secrets.WX_OPENID_2 }}
+          WX_OPENID_3: ${{ secrets.WX_OPENID_3 }}
+
           WX_TEMPLATE_ID: ${{ secrets.WX_TEMPLATE_ID }}
+
           WEATHER_KEY: ${{ secrets.WEATHER_KEY }}
+
+        run: node weather.js
