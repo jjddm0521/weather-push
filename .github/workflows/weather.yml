@@ -18,6 +18,9 @@ jobs:
           node-version: 20
 
       - run: node weather.js
-        env:
-          WX_APPID: ${{ secrets.WX_APPID }}
-          WX_SECRET: ${{ secrets.WX_SECRET }}
+ env:
+  WX_APPID: ${{ secrets.WX_APPID }}
+  WX_SECRET: ${{ secrets.WX_SECRET }}
+  WX_OPENID: ${{ secrets.WX_OPENID }}
+  WX_TEMPLATE_ID: ${{ secrets.WX_TEMPLATE_ID }}
+  WEATHER_KEY: ${{ secrets.WEATHER_KEY }}
