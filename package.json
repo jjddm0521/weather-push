@@ -1,9 +1,5 @@
 {
-2
-"name": "weather-push",
-3
-"version": "1.0.0",
-4
-"type": "module"
-5
+  "name": "weather-push",
+  "version": "1.0.0",
+  "type": "module"
 }
