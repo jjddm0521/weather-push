@@ -1,6 +1,12 @@
 const APPID = process.env.WX_APPID;
 const SECRET = process.env.WX_SECRET;
-const OPENID = process.env.WX_OPENID;
+
+const USERS = [
+  process.env.WX_OPENID_1,
+  process.env.WX_OPENID_2,
+  process.env.WX_OPENID_3
+].filter(Boolean);
+
 const TEMPLATE_ID = process.env.WX_TEMPLATE_ID;
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
@@ -51,38 +57,7 @@ function getClothesAdvice(temp) {
   return "建议穿厚外套";
 }
 
-async function main() {
-  const token = await getAccessToken();
-
-  const weatherInfo = await getWeather();
-
-  const advice = getClothesAdvice(weatherInfo.temp);
-
-  const body = {
-    touser: OPENID,
-    template_id: TEMPLATE_ID,
-    data: {
-      city: {
-        value: "厦门"
-      },
-      weather: {
-        value: weatherInfo.weather
-      },
-      temp: {
-        value: `${weatherInfo.temp}℃`
-      },
-      rain: {
-        value: `${weatherInfo.rain}%`
-      },
-      cloth: {
-        value: advice
-      },
-      time: {
-        value: new Date().toLocaleString("zh-CN")
-      }
-    }
-  };
-
+async function sendMessage(token, body) {
   const response = await fetch(
     `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${token}`,
     {
@@ -94,9 +69,49 @@ async function main() {
     }
   );
 
-  const result = await response.json();
+  return await response.json();
+}
 
-  console.log(result);
+async function main() {
+
+  const token = await getAccessToken();
+
+  const weatherInfo = await getWeather();
+
+  const advice = getClothesAdvice(weatherInfo.temp);
+
+  for (const user of USERS) {
+
+    const body = {
+      touser: user,
+      template_id: TEMPLATE_ID,
+      data: {
+        city: {
+          value: "厦门"
+        },
+        weather: {
+          value: weatherInfo.weather
+        },
+        temp: {
+          value: `${weatherInfo.temp}℃`
+        },
+        rain: {
+          value: `${weatherInfo.rain}%`
+        },
+        cloth: {
+          value: advice
+        },
+        time: {
+          value: new Date().toLocaleString("zh-CN")
+        }
+      }
+    };
+
+    const result = await sendMessage(token, body);
+
+    console.log(`发送给 ${user}`);
+    console.log(result);
+  }
 }
 
 main();
