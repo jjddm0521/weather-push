@@ -5,33 +5,58 @@ const TEMPLATE_ID = process.env.WX_TEMPLATE_ID;
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
 async function getAccessToken() {
-  const url =
-    `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${APPID}&secret=${SECRET}`;
+  const res = await fetch(
+    `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${APPID}&secret=${SECRET}`
+  );
 
-  const res = await fetch(url);
   const data = await res.json();
 
   return data.access_token;
 }
 
 async function getWeather() {
-  const url =
-    `https://api.openweathermap.org/data/2.5/weather?q=Xiamen&appid=${WEATHER_KEY}&units=metric&lang=zh_cn`;
+  const res = await fetch(
+    `https://api.openweathermap.org/data/2.5/forecast?q=Xiamen&appid=${WEATHER_KEY}&units=metric&lang=zh_cn`
+  );
 
-  const res = await fetch(url);
   const data = await res.json();
 
+  const forecast = data.list[0];
+
   return {
-    weather: data.weather[0].description,
-    temp: data.main.temp
+    weather: forecast.weather[0].description,
+    temp: Math.round(forecast.main.temp),
+    humidity: forecast.main.humidity,
+    rain: Math.round((forecast.pop || 0) * 100)
   };
 }
 
-async function main() {
+function getClothesAdvice(temp) {
+  if (temp >= 32) {
+    return "短袖短裤，注意防晒和补水";
+  }
 
+  if (temp >= 26) {
+    return "短袖即可，建议携带雨伞";
+  }
+
+  if (temp >= 20) {
+    return "长袖或薄外套";
+  }
+
+  if (temp >= 15) {
+    return "外套加长裤";
+  }
+
+  return "建议穿厚外套";
+}
+
+async function main() {
   const token = await getAccessToken();
 
   const weatherInfo = await getWeather();
+
+  const advice = getClothesAdvice(weatherInfo.temp);
 
   const body = {
     touser: OPENID,
@@ -44,7 +69,13 @@ async function main() {
         value: weatherInfo.weather
       },
       temp: {
-        value: weatherInfo.temp + "℃"
+        value: `${weatherInfo.temp}℃`
+      },
+      rain: {
+        value: `${weatherInfo.rain}%`
+      },
+      cloth: {
+        value: advice
       },
       time: {
         value: new Date().toLocaleString("zh-CN")
@@ -52,7 +83,7 @@ async function main() {
     }
   };
 
-  const res = await fetch(
+  const response = await fetch(
     `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${token}`,
     {
       method: "POST",
@@ -63,7 +94,7 @@ async function main() {
     }
   );
 
-  const result = await res.json();
+  const result = await response.json();
 
   console.log(result);
 }
