@@ -2,7 +2,6 @@ name: Weather Push
 
 on:
   workflow_dispatch:
-
   schedule:
     # 每天北京时间 07:30 推送
     # GitHub 使用 UTC 时间
